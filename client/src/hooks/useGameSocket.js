@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = 'http://localhost:5001';
+const SOCKET_URL = import.meta.env.VITE_API_BASE_URL
 
 export const useGameSocket = (userId, onEvents = {}) => {
   const socketRef = useRef(null);

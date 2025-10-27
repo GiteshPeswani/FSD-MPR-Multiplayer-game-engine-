@@ -12,7 +12,8 @@ import {
   addMessage,
 } from '../store/slices/socketSlice';
 
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_API_BASE_URL
+
 
 export const useSocket = () => {
   const dispatch = useDispatch();
