@@ -6,7 +6,7 @@ import Button from '../components/common/Button';
 import { Play, Search, ArrowUpDown, User } from 'lucide-react';
 import { purchaseAsset } from '../store/slices/inventorySlice'; // Redux action
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL =process.env.REACT_APP_API_URL;
 
 const AssetMarketplace = () => {
   const dispatch = useDispatch();
