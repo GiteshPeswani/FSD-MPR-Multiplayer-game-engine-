@@ -1,0 +1,56 @@
+# ===========================
+# 🚫 General
+# ===========================
+node_modules/
+.env
+.env.local
+.env.production
+.env.development
+dist/
+build/
+.cache/
+.tmp/
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ===========================
+# ⚛️ Frontend (React/Vite)
+# ===========================
+client/node_modules/
+client/dist/
+client/build/
+client/.env
+client/.vercel/
+client/.next/
+client/.cache/
+
+# ===========================
+# 🧠 Backend (Node/Express)
+# ===========================
+server/node_modules/
+server/dist/
+server/build/
+server/.env
+server/.render/
+server/logs/
+server/tmp/
+
+# ===========================
+# 🐳 Docker
+# ===========================
+docker-compose.override.yml
+*.pid
+*.seed
+*.bak
+
+# ===========================
+# ⚙️ System & IDE
+# ===========================
+.vscode/
+.idea/
+*.iml
+Thumbs.db
