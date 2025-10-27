@@ -12,7 +12,7 @@ import {
   addMessage,
 } from '../store/slices/socketSlice';
 
-const SOCKET_URL = import.meta.env.VITE_API_BASE_URL
+const SOCKET_URL = process.env.REACT_APP_API_URL;
 
 
 export const useSocket = () => {

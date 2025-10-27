@@ -24,7 +24,7 @@ const Inventory = () => {
   const purchaseAsset = async (assetId, quantity = 1) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}}/inventory/purchase`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/inventory/purchase`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

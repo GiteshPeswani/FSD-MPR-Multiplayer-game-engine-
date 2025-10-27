@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_API_BASE_URL
+const SOCKET_URL = process.env.REACT_APP_API_URL;
 
 export const useGameSocket = (userId, onEvents = {}) => {
   const socketRef = useRef(null);

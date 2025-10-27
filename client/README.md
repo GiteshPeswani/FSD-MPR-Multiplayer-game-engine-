@@ -9,7 +9,7 @@ In the project directory, you can run:
 ### `npm start`
 
 Runs the app in the development mode.\
-Open import.meta.env.VITE_API_BASE_URL to view it in your browser.
+Open import.meta.env.process.env.REACT_APP_API_URL to view it in your browser.
 
 The page will reload when you make changes.\
 You may also see any lint errors in the console.
