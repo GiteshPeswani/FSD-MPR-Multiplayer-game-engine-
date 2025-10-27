@@ -6,6 +6,8 @@ import Button from '../components/common/Button';
 import { Play, Search, ArrowUpDown, User } from 'lucide-react';
 import { purchaseAsset } from '../store/slices/inventorySlice'; // Redux action
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const AssetMarketplace = () => {
   const dispatch = useDispatch();
   const [assets, setAssets] = useState([]);
@@ -19,7 +21,7 @@ const AssetMarketplace = () => {
   const fetchAssets = async () => {
     try {
       setIsLoading(true);
-      const res = await axios.get('http://localhost:4000/api/assets', {
+      const res = await axios.get(`${API_BASE_URL}/assets`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setAssets(res.data.assets);
@@ -36,21 +38,17 @@ const AssetMarketplace = () => {
     fetchAssets();
   }, []);
 
-  // Search & Sort logic
   const applyFiltersAndSort = useCallback((currentAssets, term, order) => {
     let results = currentAssets;
-
     if (term) {
       results = results.filter((asset) =>
         asset.name.toLowerCase().includes(term.toLowerCase()) ||
         asset.category.toLowerCase().includes(term.toLowerCase())
       );
     }
-
     if (order !== 'none') {
       results = [...results].sort((a, b) => (order === 'asc' ? a.price - b.price : b.price - a.price));
     }
-
     setFilteredAssets(results);
   }, []);
 
@@ -75,7 +73,6 @@ const AssetMarketplace = () => {
   const getImageSource = (asset) =>
     asset.displayImage || `https://via.placeholder.com/400x200?text=${encodeURIComponent(asset.name || 'Asset')}`;
 
-  // ------------------ Purchase Handler ------------------
   const handlePurchase = async (assetId) => {
     try {
       await dispatch(purchaseAsset({ assetId, quantity: 1 })).unwrap();
@@ -112,7 +109,7 @@ const AssetMarketplace = () => {
           </div>
         </div>
 
-        {/* Loading/Error/Empty States */}
+        {/* Loading/Error/Empty */}
         {isLoading && (
           <div className="text-center py-12">
             <div className="inline-block w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
@@ -135,17 +132,16 @@ const AssetMarketplace = () => {
               const ownerName = asset.owner?.username || asset.owner?._id;
 
               return (
-                <Card
-                  key={asset._id}
-                  hover
-                  className="overflow-hidden bg-slate-800 border border-slate-700 rounded-xl shadow-lg transition-transform hover:scale-[1.02]"
-                >
+                <Card key={asset._id} hover className="overflow-hidden bg-slate-800 border border-slate-700 rounded-xl shadow-lg transition-transform hover:scale-[1.02]">
                   <div className="relative">
                     <img
                       src={getImageSource(asset)}
                       alt={asset.name}
                       className="w-full h-48 object-cover"
-                      onError={(e) => { e.target.onerror = null; e.target.src = `https://via.placeholder.com/400x200?text=${encodeURIComponent(asset.name || 'Asset')}` }}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = `https://via.placeholder.com/400x200?text=${encodeURIComponent(asset.name || 'Asset')}`;
+                      }}
                     />
                     <span className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold border rounded-full ${getRarityColor(rarity)}`}>
                       {rarity}

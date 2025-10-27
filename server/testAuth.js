@@ -1,38 +1,36 @@
 require('dotenv').config();
 const axios = require('axios');
 
-const API = 'http://localhost:4000/api/auth';
+const API = 'https://fsd-mpr-multiplayer-game-engine.onrender.com/api/auth';
 
-const testRegister = async () => {
+async function testRegister() {
   try {
     const res = await axios.post(`${API}/register`, {
-      username: 'testuser4',
-      email: 'test@test.com4',
-      password: '123456789041'
+      username: 'testuser_final',
+      email: 'testuser_final@example.com',
+      password: '12345678',
     });
-    console.log('✅ Registered:', res.data);
+    console.log('✅ Registration success:');
+    console.log(res.data);
   } catch (err) {
-    console.error('❌ Register failed:', err.response?.data || err.message);
+    console.error('❌ Registration failed:', err.response?.data || err.message);
   }
-};
+}
 
-const testLogin = async () => {
+async function testLogin() {
   try {
     const res = await axios.post(`${API}/login`, {
-      email: 'test@test.com4',
-      password: '123456789041'
+      email: 'testuser_final@example.com',
+      password: '12345678',
     });
-    console.log('✅ Logged in, token:', res.data.token);
-    return res.data.token;
+    console.log('✅ Login success, token:');
+    console.log(res.data.token);
   } catch (err) {
     console.error('❌ Login failed:', err.response?.data || err.message);
   }
-};
+}
 
-const run = async () => {
+(async () => {
   await testRegister();
-  const token = await testLogin();
-  console.log('Use this token for protected routes:', token);
-};
-
-run();
+  await testLogin();
+})();
