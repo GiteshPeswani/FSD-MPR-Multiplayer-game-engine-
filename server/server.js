@@ -41,13 +41,17 @@
         app.use(helmet());
 
         // CORS Configuration
-        app.use(
-        cors({
-            origin: '*',
-            methods: ['GET', 'POST', 'PUT', 'DELETE'],
-            credentials: true,
-        })
-        );
+      app.use(
+  cors({
+    origin: [
+      'https://game-engine-rnupmf44l-giteshpeswani-gmailcoms-projects.vercel.app',
+      'http://localhost:3000' // for local testing
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+  })
+);
+
 
         // Parse incoming JSON requests
         app.use(express.json());
