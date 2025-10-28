@@ -10,7 +10,9 @@ const Navbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-  const { user, token } = useSelector((state) => state.auth);
+
+  // 🧩 Safe selector (prevents crash even if state.auth is undefined)
+  const { user, token } = useSelector((state) => state.auth ?? { user: null, token: null });
 
   const handleLogout = () => {
     dispatch(logout());

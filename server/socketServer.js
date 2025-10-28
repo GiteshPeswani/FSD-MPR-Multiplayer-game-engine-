@@ -1,62 +1,78 @@
-// server.js
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors');
+const initWebSocket = (io) => {
+  const sessions = {};
 
-const app = express();
-app.use(cors());
-
-const server = http.createServer(app);
-
-const io = new Server(server, {
-  cors: {
-    origin: '*', // allow all origins for testing
-    methods: ['GET', 'POST'],
-  },
-});
-
-const rooms = {}; // store players per room
-
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-  socket.on('registerUser', ({ userId }) => {
-    socket.userId = userId;
-    console.log(`Registered user: ${userId}`);
-  });
-
-  socket.on('joinGame', ({ gameId, userId }) => {
-    socket.join(gameId);
-    if (!rooms[gameId]) rooms[gameId] = [];
-    rooms[gameId].push(userId);
-    io.to(gameId).emit('playerJoined', { players: rooms[gameId] });
-    console.log(`${userId} joined game ${gameId}`);
-  });
-
-  socket.on('leaveGame', ({ gameId, userId }) => {
-    socket.leave(gameId);
-    if (rooms[gameId]) {
-      rooms[gameId] = rooms[gameId].filter((p) => p !== userId);
-      io.to(gameId).emit('playerLeft', { players: rooms[gameId] });
+  io.on("connection", (socket) => {
+    const { userId, username } = socket.handshake.auth || {};
+    if (userId && username) {
+      socket.userId = userId;
+      socket.username = username;
+      console.log(`✅ ${username} connected (${socket.id})`);
+    } else {
+      console.warn("⚠️ Missing auth info in handshake");
     }
-    console.log(`${userId} left game ${gameId}`);
-  });
 
-  socket.on('playerAction', ({ gameId, userId, action }) => {
-    // Broadcast action to other players
-    io.to(gameId).emit('gameStateUpdate', { [userId]: action });
-    console.log(`${userId} did action in game ${gameId}:`, action);
-  });
+    // 🧩 Create Game Session
+    socket.on("createGameSession", ({ gameId, userId, username }) => {
+      const sessionId = `session-${Date.now()}`;
+      sessions[sessionId] = {
+        id: sessionId,
+        gameId,
+        players: [{ userId, username }],
+        state: {},
+      };
 
-  socket.on('sendMessage', ({ gameId, userId, message }) => {
-    io.to(gameId).emit('receiveMessage', { userId, message });
-  });
+      socket.join(sessionId);
+      socket.emit("sessionCreated", { success: true, session: sessions[sessionId] });
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.userId || socket.id);
-    // Optional: remove from rooms
-  });
-});
+      console.log(`🎮 Session created by ${username}: ${sessionId}`);
+    });
 
-server.listen(5001, () => console.log('WebSocket server running on port 5001'));
+    // 👥 Join existing session
+    socket.on("joinGameSession", ({ sessionId, userId, username }) => {
+      const session = sessions[sessionId];
+      if (!session) return;
+
+      const alreadyJoined = session.players.some((p) => p.userId === userId);
+      if (!alreadyJoined) session.players.push({ userId, username });
+
+      socket.join(sessionId);
+      io.to(sessionId).emit("playerJoined", { session, player: { userId, username } });
+
+      console.log(`👥 ${username} joined ${sessionId}`);
+    });
+
+    // 🏓 Player updates game state (ball movement etc.)
+    socket.on("gameStateUpdate", ({ sessionId, userId, username, state }) => {
+      const session = sessions[sessionId];
+      if (!session) return;
+
+      // merge new state (per player)
+      session.state = { ...session.state, ...state };
+
+      // broadcast to everyone
+      io.to(sessionId).emit("gameStateSync", { state: session.state });
+    });
+
+    // 💬 Chat
+    socket.on("chatMessage", ({ sessionId, userId, username, message, type }) => {
+      io.to(sessionId).emit("chatMessage", { userId, username, message, type });
+    });
+
+    // ❌ Leave session
+    socket.on("leaveSession", ({ sessionId, userId }) => {
+      socket.leave(sessionId);
+      const session = sessions[sessionId];
+      if (session) {
+        session.players = session.players.filter((p) => p.userId !== userId);
+        io.to(sessionId).emit("playerLeft", { userId, session });
+      }
+      console.log(`❌ ${userId} left ${sessionId}`);
+    });
+
+    socket.on("disconnect", () => {
+      console.log(`🔴 Disconnected: ${socket.id}`);
+    });
+  });
+};
+
+module.exports = initWebSocket;

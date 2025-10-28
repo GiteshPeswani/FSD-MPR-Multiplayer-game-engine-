@@ -23,7 +23,7 @@ import Loader from './components/common/Loader';
 
 function App() {
   const dispatch = useDispatch();
-  const { token, isLoading, user } = useSelector((state) => state.auth);
+  const { token, isLoading, user } = useSelector((state) => state.auth || {}); // ✅ Safe destructure
 
   useEffect(() => {
     if (token) dispatch(getMe());
@@ -31,7 +31,6 @@ function App() {
 
   if (isLoading) return <Loader />;
 
-  // Wrapper to extract params for GameRoom
   const GameRoomWrapper = () => {
     const { roomId } = useParams();
     const userId = user?._id;
@@ -56,8 +55,6 @@ function App() {
           <Route path="/game/play/:id" element={<PrivateRoute><GamePlay /></PrivateRoute>} />
           <Route path="/inventory" element={<PrivateRoute><Inventory /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-
-          {/* WebSocket / Live Game Room */}
           <Route path="/game/room/:roomId" element={<PrivateRoute><GameRoomWrapper /></PrivateRoute>} />
 
           {/* 404 */}

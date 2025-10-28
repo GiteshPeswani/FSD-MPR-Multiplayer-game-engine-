@@ -5,7 +5,7 @@ import assetReducer from './slices/assetSlice';
 import inventoryReducer from './slices/inventorySlice';
 import socketReducer from './slices/socketSlice';
 
-export const store = configureStore({
+const store = configureStore({
   reducer: {
     auth: authReducer,
     game: gameReducer,
@@ -16,9 +16,10 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // Ignore socket instance in actions
         ignoredActions: ['socket/setSocket'],
         ignoredPaths: ['socket.instance'],
       },
     }),
 });
+
+export default store; // ✅ Default export (fix)

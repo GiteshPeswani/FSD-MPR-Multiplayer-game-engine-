@@ -3,13 +3,21 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-// Get user/token from localStorage
-const user = JSON.parse(localStorage.getItem('user'));
-const token = localStorage.getItem('token');
+// -------------------- Helpers -------------------- //
+const getLocalUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem('user')) || null;
+  } catch {
+    return null;
+  }
+};
 
+const getLocalToken = () => localStorage.getItem('token') || null;
+
+// -------------------- Initial State -------------------- //
 const initialState = {
-  user: user || null,
-  token: token || null,
+  user: getLocalUser(),
+  token: getLocalToken(),
   isLoading: false,
   isSuccess: false,
   isError: false,
@@ -18,71 +26,68 @@ const initialState = {
 
 // -------------------- Thunks -------------------- //
 
-// Register user
+// ✅ Register user
 export const register = createAsyncThunk('auth/register', async (userData, thunkAPI) => {
   try {
-    const response = await axios.post(`${API_URL}/auth/register`, userData);
-    // Backend returns { user, token }
-    if (response.data.user && response.data.token) {
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      localStorage.setItem('token', response.data.token);
+    const res = await axios.post(`${API_URL}/auth/register`, userData);
+    if (res.data.user && res.data.token) {
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      localStorage.setItem('token', res.data.token);
     }
-    return response.data;
-  } catch (error) {
-    return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+    return res.data;
+  } catch (err) {
+    return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
   }
 });
 
-// Login user
+// ✅ Login user
 export const login = createAsyncThunk('auth/login', async (userData, thunkAPI) => {
   try {
-    const response = await axios.post(`${API_URL}/auth/login`, userData);
-    // Backend returns { user, token }
-    if (response.data.user && response.data.token) {
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      localStorage.setItem('token', response.data.token);
+    const res = await axios.post(`${API_URL}/auth/login`, userData);
+    if (res.data.user && res.data.token) {
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      localStorage.setItem('token', res.data.token);
     }
-    return response.data;
-  } catch (error) {
-    return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+    return res.data;
+  } catch (err) {
+    return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
   }
 });
 
-// Logout user
+// ✅ Logout user
 export const logout = createAsyncThunk('auth/logout', async () => {
   localStorage.removeItem('user');
   localStorage.removeItem('token');
+  return true;
 });
 
-// Get current user
+// ✅ Get current user
 export const getMe = createAsyncThunk('auth/getMe', async (_, thunkAPI) => {
   try {
     const token = thunkAPI.getState().auth.token;
-    const response = await axios.get(`${API_URL}/auth/me`, {
+    if (!token) throw new Error('No token found');
+    const res = await axios.get(`${API_URL}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (response.data.user) {
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-    }
-    return response.data.user;
-  } catch (error) {
-    return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+    if (res.data.user) localStorage.setItem('user', JSON.stringify(res.data.user));
+    return res.data.user;
+  } catch (err) {
+    return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
   }
 });
 
-// Update profile
+// ✅ Update profile
 export const updateProfile = createAsyncThunk('auth/updateProfile', async (userData, thunkAPI) => {
   try {
     const token = thunkAPI.getState().auth.token;
-    const response = await axios.put(`${API_URL}/auth/profile`, userData, {
+    if (!token) throw new Error('No token found');
+    const res = await axios.put(`${API_URL}/auth/profile`, userData, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (response.data.user) {
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-    }
-    return response.data.user;
-  } catch (error) {
-    return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+    if (res.data.user) localStorage.setItem('user', JSON.stringify(res.data.user));
+    return res.data.user;
+  } catch (err) {
+    return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
   }
 });
 
@@ -107,8 +112,10 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Register
-      .addCase(register.pending, (state) => { state.isLoading = true; })
+      // ---------------- Register ----------------
+      .addCase(register.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
@@ -122,8 +129,11 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
       })
-      // Login
-      .addCase(login.pending, (state) => { state.isLoading = true; })
+
+      // ---------------- Login ----------------
+      .addCase(login.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
@@ -137,13 +147,17 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
       })
-      // Logout
+
+      // ---------------- Logout ----------------
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.token = null;
       })
-      // Get Me
-      .addCase(getMe.pending, (state) => { state.isLoading = true; })
+
+      // ---------------- Get Me ----------------
+      .addCase(getMe.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(getMe.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload;
@@ -153,8 +167,11 @@ const authSlice = createSlice({
         state.isError = true;
         state.message = action.payload;
       })
-      // Update Profile
-      .addCase(updateProfile.pending, (state) => { state.isLoading = true; })
+
+      // ---------------- Update Profile ----------------
+      .addCase(updateProfile.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(updateProfile.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
@@ -168,5 +185,6 @@ const authSlice = createSlice({
   },
 });
 
+// -------------------- Exports -------------------- //
 export const { reset, updateUserCoins } = authSlice.actions;
 export default authSlice.reducer;
